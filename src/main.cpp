@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <iostream>
-#include <event.xsd>
+
 using namespace std;
 using namespace sf;
 
@@ -53,8 +53,6 @@ public:
 private:
 	sf::Texture boardTexture;
 	sf::Sprite boardSprite;
-
-
 };
 
 class chip : public Entity
@@ -77,6 +75,14 @@ public:
 	{
 		Clock timer;
 				
+		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+	}
+
+	void ChipMove(int dir, int row)
+	{
+		row += dir;
+		y_direction += (dir * 74);
+
 		//if (event.type == sf::Keyboard::Left)
 		//{
 		//	if (!(row < 1))
@@ -94,56 +100,9 @@ public:
 		//		y_direction += 74;
 		//	}
 		//}
-
-		//if (event.type == sf::Keyboard::Space)
-		//{
-		//	//ChipSubmit();
-		//}
-			
-
-		// Delay for input
-		//if (timer.getElapsedTime().asMilliseconds() >= 100)
-		//{
-		//	if (Keyboard::isKeyPressed(Keyboard::Left))
-		//	{
-		//		if (!(row < 1))
-		//		{
-		//			row -= 1;
-		//			y_direction -= 74;
-		//		}
-		//	}
-
-		//	if (Keyboard::isKeyPressed(Keyboard::Right))
-		//	{
-		//		if (!(row > 6))
-		//		{
-		//			row += 1;
-		//			y_direction += 74;
-		//		}
-		//	}
-
-		//	if (Keyboard::isKeyPressed(Keyboard::Space))
-		//	{
-		//		for (int i = 0; i <= rowHeights[row]; i++)
-		//		{
-		//			x_direction += 74;
-		//		}
-
-		//		rowHeights[row] -= 1;
-		//	}
-
-		//	timer.restart();
-		//}
-
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
 	}
 
-	void ChipMove()
-	{
-		
-	}
-
-	void ChipSubmit()
+	void ChipSubmit(int rowHeights[5], int row)
 	{
 		for (int i = 0; i <= rowHeights[row]; i++)
 		{
@@ -160,8 +119,7 @@ private:
 	int y_direction = 0;
 	int x_direction = 0;
 
-	int rowHeights[5] = { 4, 4, 4, 4, 4 };
-	int row = 0;
+
 
 	void SetChipOrigin()
 	{
@@ -182,6 +140,9 @@ void main(int argc, char** argv[])
 	//the main chip
 	chip _chip;	
 
+	int rowHeights[5] = { 4, 4, 4, 4, 4 };
+	int row = 0;
+
 	// Main gameplay loop
 	while (window.isOpen())
 	{
@@ -199,8 +160,19 @@ void main(int argc, char** argv[])
 				if (event.key.code == sf::Keyboard::Space)
 				{
 					//_chip.DoSpaceBarStuff();
-					_chip.ChipSubmit();
+					_chip.ChipSubmit(rowHeights, row);
 				}
+
+				if (event.key.code == sf::Keyboard::Left)
+				{
+					_chip.ChipMove(-1, row);
+				}
+
+				if (event.key.code == sf::Keyboard::Right)
+				{
+					_chip.ChipMove(1, row);
+				}
+
 			}
 		}
 
