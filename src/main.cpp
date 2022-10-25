@@ -58,6 +58,8 @@ private:
 class chip : public Entity
 {
 public:
+	bool isActive;
+
 	chip()
 	{
 		chipPinkTexture.loadFromFile("assets/chipPink.png");
@@ -73,36 +75,40 @@ public:
 
 	void update()
 	{
-		Clock timer;
-				
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		if(isActive)
+		{
+			chipPinkSprite.setPosition(64 + y_direction, 50);
+		}		
 	}
 
-	void ChipMove(int dir, int row)
+	void ChipMove(int dir, int &row)
 	{
-		row += dir;
-		y_direction += (dir * 74);
+		cout << "row: " << row << "\n";
 
-		//if (event.type == sf::Keyboard::Left)
-		//{
-		//	if (!(row < 1))
-		//	{
-		//		row -= 1;
-		//		y_direction -= 74;
-		//	}
-		//}
+		if (dir == -1)
+		{
+			if (!(row < 1))
+			{
+				row -= 1;
+				y_direction -= 74;
+			}
+		}
 
-		//if (event.type == sf::Keyboard::Right)
-		//{
-		//	if (!(row > 6))
-		//	{
-		//		row += 1;
-		//		y_direction += 74;
-		//	}
-		//}
+		else if (dir == 1)
+		{
+			if (!(row > 6))
+			{
+				row += 1;
+				y_direction += 74;
+			}
+		}
+		else
+		{
+			cout << "OUT OF BOUNDS" << "\n";
+		}
 	}
 
-	void ChipSubmit(int rowHeights[5], int row)
+	void ChipSubmit(int rowHeights[5], int &row)
 	{
 		for (int i = 0; i <= rowHeights[row]; i++)
 		{
@@ -110,6 +116,8 @@ public:
 		}
 
 		rowHeights[row] -= 1;
+
+		SetChipInBoard();		
 	}
 
 private:
@@ -119,12 +127,16 @@ private:
 	int y_direction = 0;
 	int x_direction = 0;
 
-
-
 	void SetChipOrigin()
 	{
 		sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+	}
+
+	void SetChipInBoard()
+	{
+		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		isActive = false;
 	}
 };
 
@@ -159,8 +171,8 @@ void main(int argc, char** argv[])
 			{
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					//_chip.DoSpaceBarStuff();
 					_chip.ChipSubmit(rowHeights, row);
+					_chip.isActive = false;
 				}
 
 				if (event.key.code == sf::Keyboard::Left)
