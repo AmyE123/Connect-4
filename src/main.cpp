@@ -172,7 +172,6 @@ void main(int argc, char** argv[])
 				if (event.key.code == sf::Keyboard::Space)
 				{
 					_chip.ChipSubmit(rowHeights, row);
-					_chip.isActive = false;
 				}
 
 				if (event.key.code == sf::Keyboard::Left)
