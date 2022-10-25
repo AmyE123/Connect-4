@@ -1,43 +1,159 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <iostream>
+
 using namespace std;
 using namespace sf;
 
-sf::Sprite createChip(sf::Texture chipPinkTexture)
+class Entity
 {
-	sf::Sprite chipPinkSprite(chipPinkTexture);
-	sf::Vector2u size = chipPinkTexture.getSize();
-	chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+public:
+	virtual void update() {};
 
-	return chipPinkSprite;
-}
+	virtual void draw(sf::RenderWindow& window, sf::Sprite sprite)
+	{
+		window.draw(sprite);
+	}
 
-void main(int argc, char** argv[])
-{  
-	sf::RenderWindow window(sf::VideoMode(640, 480), "First Window");
+	virtual ~Entity() {};
+};
+
+class board : public Entity
+{
+public:
+	board()
+	{
+		boardTexture.loadFromFile("assets/boardGap.png");
+		boardSprite.setTexture(boardTexture);		
+	}
 	
-	sf::Texture chipGreenTexture;
+	void DrawBoard(sf::RenderWindow& window)
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				sf::Texture boardTexture2;
 
-	Clock timer;
+				sf::Vector2u size3 = boardTexture.getSize();
+				boardSprite.setOrigin(size3.x / 2, size3.y / 2);
 
+				//50, 50 is top left corner
+				boardSprite.setPosition(64 + (i * 74), 124 + (j * 74));
+				draw(window);
+			}
+		}
+	}
+
+	void draw(sf::RenderWindow& window)
+	{
+		Entity::draw(window, boardSprite);
+	}
+
+private:
+	sf::Texture boardTexture;
+	sf::Sprite boardSprite;
+};
+
+class chip : public Entity
+{
+public:
+	bool isActive;
+
+	chip()
+	{
+		chipPinkTexture.loadFromFile("assets/chipPink.png");
+		chipPinkSprite.setTexture(chipPinkTexture);
+		
+		SetChipOrigin();
+	}
+
+	void draw(sf::RenderWindow& window)
+	{
+		Entity::draw(window, chipPinkSprite);
+	}
+
+	void update()
+	{
+		if(isActive)
+		{
+			chipPinkSprite.setPosition(64 + y_direction, 50);
+		}		
+	}
+
+	void ChipMove(int dir, int &row)
+	{
+		cout << "row: " << row << "\n";
+
+		if (dir == -1)
+		{
+			if (!(row < 1))
+			{
+				row -= 1;
+				y_direction -= 74;
+			}
+		}
+
+		else if (dir == 1)
+		{
+			if (!(row > 6))
+			{
+				row += 1;
+				y_direction += 74;
+			}
+		}
+		else
+		{
+			cout << "OUT OF BOUNDS" << "\n";
+		}
+	}
+
+	void ChipSubmit(int rowHeights[5], int &row)
+	{
+		for (int i = 0; i <= rowHeights[row]; i++)
+		{
+			x_direction += 74;
+		}
+
+		rowHeights[row] -= 1;
+
+		SetChipInBoard();		
+	}
+
+private:
 	sf::Texture chipPinkTexture;
-	chipPinkTexture.loadFromFile("assets/chipPink.png");
-	
-	sf::Sprite chipPinkSprite(chipPinkTexture);
-
-	vector<sf::Sprite> activeSprite;
-	
-
-	sf::Vector2u size = chipPinkTexture.getSize();
-	chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+	sf::Sprite chipPinkSprite;
 
 	int y_direction = 0;
 	int x_direction = 0;
 
+	void SetChipOrigin()
+	{
+		sf::Vector2u size = chipPinkTexture.getSize();
+		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+	}
+
+	void SetChipInBoard()
+	{
+		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		isActive = false;
+	}
+};
+
+void main(int argc, char** argv[])
+{  
+	// The render window
+	sf::RenderWindow window(sf::VideoMode(640, 480), "First Window");
+
+	Clock _timer;
+
+	board _board;
+
+	//the main chip
+	chip _chip;	
+
+	int rowHeights[5] = { 4, 4, 4, 4, 4 };
 	int row = 0;
-	int rowHeights[5] = {4, 4, 4, 4, 4};
-	int chipIndex = 0;
 
 	// Main gameplay loop
 	while (window.isOpen())
@@ -50,78 +166,41 @@ void main(int argc, char** argv[])
 				//Closed window button clicked
 				window.close();
 			}
-		}
-		//sf::Sprite a = new sf::Sprite(chipPinkTexture);
-		activeSprite.push_back(chipPinkSprite);
 
-		// Delay for input
-		if (timer.getElapsedTime().asMilliseconds() >= 100)
-		{
-			if (Keyboard::isKeyPressed(Keyboard::Left)) 
-			{ 
-				if (!(row < 1)) 
-				{ 
-					row -= 1; 
-					y_direction -= 74;
-				}
-				
-				
-			}
-
-			if (Keyboard::isKeyPressed(Keyboard::Right)) 
-			{ 
-				if (!(row > 6)) 
-				{ 
-					row += 1; 
-					y_direction += 74;
-				}				
-			}
-
-			if (Keyboard::isKeyPressed(Keyboard::Space)) 
+			if (event.type == sf::Event::KeyPressed)
 			{
-				activeSprite.push_back(chipPinkSprite);
-				chipIndex += 1;
-
-				for (int i = 0; i <= rowHeights[row]; i++)
-				{				
-					x_direction += 74;
+				if (event.key.code == sf::Keyboard::Space)
+				{
+					_chip.ChipSubmit(rowHeights, row);
+					_chip.isActive = false;
 				}
 
-				rowHeights[row] -= 1;				
-			}
+				if (event.key.code == sf::Keyboard::Left)
+				{
+					_chip.ChipMove(-1, row);
+				}
 
-			timer.restart();
+				if (event.key.code == sf::Keyboard::Right)
+				{
+					_chip.ChipMove(1, row);
+				}
+
+			}
 		}
 
-		//chip[chipIndex].setPosition(64 + y_direction, 50 + x_direction);
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
-		//activeSprite.end()->setPosition(64 + y_direction, 50 + x_direction);
-		//activeSprite.setPosition(64 + y_direction, 50 + x_direction);
+		//updates every frame or so, so always sets back to origin? something to do with the loop or somethin
+		// something is setting it back to 0
+		_chip.update();
 
 		window.clear(sf::Color(236,240,241,255));
 
-		//draw table
-		for (int i = 0; i < 8; i++)
-		{
-			for (int j = 0; j < 5; j++)
-			{
-				sf::Texture boardTexture2;
+		//draw table		
+		_board.DrawBoard(window);
 
-				boardTexture2.loadFromFile("assets/boardGap.png");
-				sf::Sprite boardSprite2(boardTexture2);
-				sf::Vector2u size3 = boardTexture2.getSize();
-				boardSprite2.setOrigin(size3.x / 2, size3.y / 2);
-
-				//50, 50 is top left corner
-				boardSprite2.setPosition(64 + (i * 74), 124 + (j * 74));
-				window.draw(boardSprite2);
-			}
-		}
+		//draw chip
+		_chip.draw(window);
 
 		//Draw here
-		window.draw(chipPinkSprite);
-		
-
 		window.display();
 	}
 }
