@@ -81,26 +81,28 @@ public:
 		}		
 	}
 
-	void ChipMove(int dir, int &row)
+	void ChipMove(int dir, int& row)
 	{
-		cout << "row: " << row << "\n";
-
 		if (dir == -1)
 		{
+			
 			if (!(row < 1))
 			{
 				row -= 1;
 				y_direction -= 74;
 			}
+			cout << "row: " << row << "\n";
 		}
 
 		else if (dir == 1)
 		{
+			
 			if (!(row > 6))
 			{
 				row += 1;
 				y_direction += 74;
 			}
+			cout << "row: " << row << "\n";
 		}
 		else
 		{
@@ -108,16 +110,17 @@ public:
 		}
 	}
 
-	void ChipSubmit(int rowHeights[5], int &row)
+	int ChipSubmit(int &rowHeight)
 	{
-		for (int i = 0; i <= rowHeights[row]; i++)
+		for (int i = 0; i <= rowHeight; i++)
 		{
 			x_direction += 74;
 		}
 
-		rowHeights[row] -= 1;
-
-		SetChipInBoard();		
+		rowHeight -= 1;
+		cout << "rowHeight: " << rowHeight << "\n";
+		SetChipInBoard();
+		return rowHeight;
 	}
 
 private:
@@ -131,6 +134,7 @@ private:
 	{
 		sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
 	}
 
 	void SetChipInBoard()
@@ -139,6 +143,11 @@ private:
 		isActive = false;
 	}
 };
+
+void resetChipValues()
+{
+
+}
 
 void main(int argc, char** argv[])
 {  
@@ -149,10 +158,13 @@ void main(int argc, char** argv[])
 
 	board _board;
 
-	//the main chip
-	chip _chip;	
+	//the chips
+	vector<chip*> _chips;
+	_chips.push_back(new chip);
 
-	int rowHeights[5] = { 4, 4, 4, 4, 4 };
+	chip *_activeChip = _chips.back();
+
+	int rowHeights[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
 	int row = 0;
 
 	// Main gameplay loop
@@ -160,7 +172,7 @@ void main(int argc, char** argv[])
 	{
 		sf::Event event;
 		while (window.pollEvent(event))
-		{
+		{			
 			if (event.type == sf::Event::Closed())
 			{
 				//Closed window button clicked
@@ -171,25 +183,29 @@ void main(int argc, char** argv[])
 			{
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					_chip.ChipSubmit(rowHeights, row);
+					if (rowHeights[row] != -1)
+					{
+						rowHeights[row] = _activeChip->ChipSubmit(rowHeights[row]);
+						_chips.push_back(new chip);
+						_activeChip = _chips.back();
+						row = 0;
+					}
 				}
 
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					_chip.ChipMove(-1, row);
+					_activeChip->ChipMove(-1, row);
 				}
 
 				if (event.key.code == sf::Keyboard::Right)
 				{
-					_chip.ChipMove(1, row);
+					_activeChip->ChipMove(1, row);
 				}
 
 			}
 		}
 
-		//updates every frame or so, so always sets back to origin? something to do with the loop or somethin
-		// something is setting it back to 0
-		_chip.update();
+		_activeChip->update();
 
 		window.clear(sf::Color(236,240,241,255));
 
@@ -197,7 +213,10 @@ void main(int argc, char** argv[])
 		_board.DrawBoard(window);
 
 		//draw chip
-		_chip.draw(window);
+		for (int i = 0; i < _chips.size(); i++)
+		{
+			_chips[i]->draw(window);
+		}
 
 		//Draw here
 		window.display();
