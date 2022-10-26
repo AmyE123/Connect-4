@@ -131,6 +131,7 @@ private:
 	{
 		sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
+		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
 	}
 
 	void SetChipInBoard()
@@ -149,8 +150,11 @@ void main(int argc, char** argv[])
 
 	board _board;
 
-	//the main chip
-	chip _chip;	
+	//the chips
+	vector<chip*> _chips;
+	_chips.push_back(new chip);
+
+	chip *_activeChip = _chips.back();
 
 	int rowHeights[5] = { 4, 4, 4, 4, 4 };
 	int row = 0;
@@ -160,7 +164,7 @@ void main(int argc, char** argv[])
 	{
 		sf::Event event;
 		while (window.pollEvent(event))
-		{
+		{			
 			if (event.type == sf::Event::Closed())
 			{
 				//Closed window button clicked
@@ -171,25 +175,25 @@ void main(int argc, char** argv[])
 			{
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					_chip.ChipSubmit(rowHeights, row);
+					_activeChip->ChipSubmit(rowHeights, row);
+					_chips.push_back(new chip);
+					_activeChip = _chips.back();
 				}
 
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					_chip.ChipMove(-1, row);
+					_activeChip->ChipMove(-1, row);
 				}
 
 				if (event.key.code == sf::Keyboard::Right)
 				{
-					_chip.ChipMove(1, row);
+					_activeChip->ChipMove(1, row);
 				}
 
 			}
 		}
 
-		//updates every frame or so, so always sets back to origin? something to do with the loop or somethin
-		// something is setting it back to 0
-		_chip.update();
+		_activeChip->update();
 
 		window.clear(sf::Color(236,240,241,255));
 
@@ -197,7 +201,10 @@ void main(int argc, char** argv[])
 		_board.DrawBoard(window);
 
 		//draw chip
-		_chip.draw(window);
+		for (int i = 0; i < _chips.size(); i++)
+		{
+			_chips[i]->draw(window);
+		}
 
 		//Draw here
 		window.display();
