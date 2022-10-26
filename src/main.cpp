@@ -81,26 +81,28 @@ public:
 		}		
 	}
 
-	void ChipMove(int dir, int &row)
+	void ChipMove(int dir, int& row)
 	{
-		cout << "row: " << row << "\n";
-
 		if (dir == -1)
 		{
+			
 			if (!(row < 1))
 			{
 				row -= 1;
 				y_direction -= 74;
 			}
+			cout << "row: " << row << "\n";
 		}
 
 		else if (dir == 1)
 		{
+			
 			if (!(row > 6))
 			{
 				row += 1;
 				y_direction += 74;
 			}
+			cout << "row: " << row << "\n";
 		}
 		else
 		{
@@ -108,16 +110,17 @@ public:
 		}
 	}
 
-	void ChipSubmit(int rowHeights[5], int &row)
+	int ChipSubmit(int &rowHeight)
 	{
-		for (int i = 0; i <= rowHeights[row]; i++)
+		for (int i = 0; i <= rowHeight; i++)
 		{
 			x_direction += 74;
 		}
 
-		rowHeights[row] -= 1;
-
-		SetChipInBoard();		
+		rowHeight -= 1;
+		cout << "rowHeight: " << rowHeight << "\n";
+		SetChipInBoard();
+		return rowHeight;
 	}
 
 private:
@@ -141,6 +144,11 @@ private:
 	}
 };
 
+void resetChipValues()
+{
+
+}
+
 void main(int argc, char** argv[])
 {  
 	// The render window
@@ -156,7 +164,7 @@ void main(int argc, char** argv[])
 
 	chip *_activeChip = _chips.back();
 
-	int rowHeights[5] = { 4, 4, 4, 4, 4 };
+	int rowHeights[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
 	int row = 0;
 
 	// Main gameplay loop
@@ -175,9 +183,13 @@ void main(int argc, char** argv[])
 			{
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					_activeChip->ChipSubmit(rowHeights, row);
-					_chips.push_back(new chip);
-					_activeChip = _chips.back();
+					if (rowHeights[row] != -1)
+					{
+						rowHeights[row] = _activeChip->ChipSubmit(rowHeights[row]);
+						_chips.push_back(new chip);
+						_activeChip = _chips.back();
+						row = 0;
+					}
 				}
 
 				if (event.key.code == sf::Keyboard::Left)
