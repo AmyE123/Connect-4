@@ -1,1 +1,8 @@
-+task+ Test PR Template
+## Describe your changes
+
+## Checklist
+- +task+ I have self-reviewed my code
+- +task+ My code follows the style guidelines of the project
+- +task+ I have documented my code
+- +task+ I have tested my code
+- +task+ My changes generate no new warnings/errors
