@@ -63,29 +63,48 @@ public:
 	chip()
 	{
 		chipPinkTexture.loadFromFile("assets/chipPink.png");
+		chipGreenTexture.loadFromFile("assets/chipGreen.png");
+
 		chipPinkSprite.setTexture(chipPinkTexture);
+		chipGreenSprite.setTexture(chipGreenTexture);
 		
 		SetChipOrigin();
 	}
 
-	void draw(sf::RenderWindow& window)
+	void draw(sf::RenderWindow& window, int idx)
 	{
-		Entity::draw(window, chipPinkSprite);
+		chipIdx = idx;
+		//if odd
+		if (idx % 2)
+		{
+			Entity::draw(window, chipGreenSprite);
+		}
+		else
+		{
+			Entity::draw(window, chipPinkSprite);
+		}		
 	}
 
 	void update()
 	{
 		if(isActive)
 		{
-			chipPinkSprite.setPosition(64 + y_direction, 50);
+			if (chipIdx % 2)
+			{
+				chipGreenSprite.setPosition(64 + y_direction, 50);
+			}
+			else
+			{
+				chipPinkSprite.setPosition(64 + y_direction, 50);
+			}
+			
 		}		
 	}
 
 	void ChipMove(int dir, int& row)
 	{
 		if (dir == -1)
-		{
-			
+		{			
 			if (!(row < 1))
 			{
 				row -= 1;
@@ -127,27 +146,32 @@ private:
 	sf::Texture chipPinkTexture;
 	sf::Sprite chipPinkSprite;
 
+	sf::Texture chipGreenTexture;
+	sf::Sprite chipGreenSprite;
+
 	int y_direction = 0;
 	int x_direction = 0;
+
+	int chipIdx;
 
 	void SetChipOrigin()
 	{
 		sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
 		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+
+		chipGreenSprite.setOrigin(size.x / 2, size.y / 2);
+		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
 	}
 
 	void SetChipInBoard()
 	{
 		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
+
 		isActive = false;
 	}
 };
-
-void resetChipValues()
-{
-
-}
 
 void main(int argc, char** argv[])
 {  
@@ -166,6 +190,20 @@ void main(int argc, char** argv[])
 
 	int rowHeights[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
 	int row = 0;
+
+	sf::Font font;
+
+	if (!font.loadFromFile("assets/LouisGeorgeCafe.ttf"))
+	{
+		cout << "FONT ERROR" << "\n";
+	}
+
+	sf::Text text;
+
+	text.setFont(font);
+	text.setString("Connect 4");
+	text.setCharacterSize(50);
+	text.setFillColor(sf::Color::Green);
 
 	// Main gameplay loop
 	while (window.isOpen())
@@ -212,11 +250,13 @@ void main(int argc, char** argv[])
 		//draw table		
 		_board.DrawBoard(window);
 
+		window.draw(text);
+
 		//draw chip
 		for (int i = 0; i < _chips.size(); i++)
 		{
-			_chips[i]->draw(window);
-		}
+			_chips[i]->draw(window, i);
+		}	
 
 		//Draw here
 		window.display();
