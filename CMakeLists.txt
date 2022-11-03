@@ -27,7 +27,7 @@ file(GLOB_RECURSE SRCS
 
 # Create the executable
 set(EXECUTABLE_NAME ${PROJECT_NAME})
-add_executable (${EXECUTABLE_NAME} ${SRCS})
+add_executable (${EXECUTABLE_NAME} ${SRCS} "src/Entity.cpp" "src/Entity.h")
 
 # Link libraries so that they can be used in the project
 target_link_libraries(${EXECUTABLE_NAME}

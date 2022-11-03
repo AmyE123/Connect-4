@@ -1,22 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <iostream>
+#include "Entity.cpp"
 
 using namespace std;
 using namespace sf;
-
-class Entity
-{
-public:
-	virtual void update() {};
-
-	virtual void draw(sf::RenderWindow& window, sf::Sprite sprite)
-	{
-		window.draw(sprite);
-	}
-
-	virtual ~Entity() {};
-};
 
 class board : public Entity
 {
