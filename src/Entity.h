@@ -5,6 +5,6 @@ class Entity
 {
 public:
 	virtual void update() {};
-	virtual void draw(RenderWindow& window, Sprite sprite);
+	virtual void Draw(RenderWindow& window, Sprite sprite);
 	virtual ~Entity() {};
 };

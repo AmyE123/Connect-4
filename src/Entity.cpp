@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-inline void Entity::draw(RenderWindow& window, Sprite sprite)
+inline void Entity::Draw(RenderWindow& window, Sprite sprite)
 {
 	window.draw(sprite);
 }

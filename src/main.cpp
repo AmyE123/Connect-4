@@ -6,13 +6,18 @@
 using namespace std;
 using namespace sf;
 
-class board : public Entity
+class Board : public Entity
 {
 public:
-	board()
+	Board()
 	{
-		boardTexture.loadFromFile("assets/boardGap.png");
-		boardSprite.setTexture(boardTexture);		
+		if (!boardTexture.loadFromFile("assets/boardGap.png"))
+		{
+			cout << "Error loading board sprite" << "\n";
+			return;
+		}
+
+		boardSprite.setTexture(boardTexture);	
 	}
 	
 	void DrawBoard(sf::RenderWindow& window)
@@ -21,21 +26,19 @@ public:
 		{
 			for (int j = 0; j < 5; j++)
 			{
-				sf::Texture boardTexture2;
-
-				sf::Vector2u size3 = boardTexture.getSize();
-				boardSprite.setOrigin(size3.x / 2, size3.y / 2);
+				sf::Vector2u size = boardTexture.getSize();
+				boardSprite.setOrigin(size.x / 2, size.y / 2);
 
 				//50, 50 is top left corner
 				boardSprite.setPosition(64 + (i * 74), 124 + (j * 74));
-				draw(window);
+				Draw(window);
 			}
 		}
 	}
 
-	void draw(sf::RenderWindow& window)
+	void Draw(sf::RenderWindow& window)
 	{
-		Entity::draw(window, boardSprite);
+		Entity::Draw(window, boardSprite);
 	}
 
 private:
@@ -43,12 +46,12 @@ private:
 	sf::Sprite boardSprite;
 };
 
-class chip : public Entity
+class Chip : public Entity
 {
 public:
 	bool isActive;
 
-	chip()
+	Chip()
 	{
 		chipPinkTexture.loadFromFile("assets/chipPink.png");
 		chipGreenTexture.loadFromFile("assets/chipGreen.png");
@@ -59,33 +62,18 @@ public:
 		SetChipOrigin();
 	}
 
-	void draw(sf::RenderWindow& window, int idx)
+	void Draw(sf::RenderWindow& window, int idx)
 	{
+		Entity::Draw(window, idx % 2 == 0 ? chipPinkSprite : chipGreenSprite);
 		chipIdx = idx;
-		//if odd
-		if (idx % 2)
-		{
-			Entity::draw(window, chipGreenSprite);
-		}
-		else
-		{
-			Entity::draw(window, chipPinkSprite);
-		}		
 	}
 
-	void update()
+	void Update()
 	{
 		if(isActive)
 		{
-			if (chipIdx % 2)
-			{
-				chipGreenSprite.setPosition(64 + y_direction, 50);
-			}
-			else
-			{
-				chipPinkSprite.setPosition(64 + y_direction, 50);
-			}
-			
+			sf::Sprite& spriteToMove = chipIdx % 2 == 0 ? chipPinkSprite : chipGreenSprite;
+			spriteToMove.setPosition(64 + yDir, 50);			
 		}		
 	}
 
@@ -96,7 +84,7 @@ public:
 			if (!(row < 1))
 			{
 				row -= 1;
-				y_direction -= 74;
+				yDir -= 74;
 			}
 			cout << "row: " << row << "\n";
 		}
@@ -107,7 +95,7 @@ public:
 			if (!(row > 6))
 			{
 				row += 1;
-				y_direction += 74;
+				yDir += 74;
 			}
 			cout << "row: " << row << "\n";
 		}
@@ -137,25 +125,25 @@ private:
 	sf::Texture chipGreenTexture;
 	sf::Sprite chipGreenSprite;
 
-	int y_direction = 0;
+	int yDir = 0;
 	int x_direction = 0;
 
 	int chipIdx;
 
 	void SetChipOrigin()
 	{
-		sf::Vector2u size = chipPinkTexture.getSize();
+		const sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + x_direction);
 
 		chipGreenSprite.setOrigin(size.x / 2, size.y / 2);
-		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipGreenSprite.setPosition(64 + yDir, 50 + x_direction);
 	}
 
 	void SetChipInBoard()
 	{
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
-		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + x_direction);
+		chipGreenSprite.setPosition(64 + yDir, 50 + x_direction);
 
 		isActive = false;
 	}
@@ -168,13 +156,13 @@ void main(int argc, char** argv[])
 
 	Clock _timer;
 
-	board _board;
+	Board _board;
 
 	//the chips
-	vector<chip*> _chips;
-	_chips.push_back(new chip);
+	vector<Chip*> _chips;
+	_chips.push_back(new Chip);
 
-	chip *_activeChip = _chips.back();
+	Chip *_activeChip = _chips.back();
 
 	int rowHeights[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
 	int row = 0;
@@ -212,7 +200,7 @@ void main(int argc, char** argv[])
 					if (rowHeights[row] != -1)
 					{
 						rowHeights[row] = _activeChip->ChipSubmit(rowHeights[row]);
-						_chips.push_back(new chip);
+						_chips.push_back(new Chip);
 						_activeChip = _chips.back();
 						row = 0;
 					}
@@ -231,7 +219,7 @@ void main(int argc, char** argv[])
 			}
 		}
 
-		_activeChip->update();
+		_activeChip->Update();
 
 		window.clear(sf::Color(236,240,241,255));
 
@@ -243,7 +231,7 @@ void main(int argc, char** argv[])
 		//draw chip
 		for (int i = 0; i < _chips.size(); i++)
 		{
-			_chips[i]->draw(window, i);
+			_chips[i]->Draw(window, i);
 		}	
 
 		//Draw here
