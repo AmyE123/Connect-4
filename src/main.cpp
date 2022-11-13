@@ -1,10 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <iostream>
-#include "Entity.cpp"
+#include "Entity.h"
 
 using namespace std;
 using namespace sf;
+
 
 class Board : public Entity
 {
@@ -109,7 +110,7 @@ public:
 	{
 		for (int i = 0; i <= rowHeight; i++)
 		{
-			x_direction += 74;
+			xDir += 74;
 		}
 
 		rowHeight -= 1;
@@ -126,7 +127,7 @@ private:
 	sf::Sprite chipGreenSprite;
 
 	int yDir = 0;
-	int x_direction = 0;
+	int xDir = 0;
 
 	int chipIdx;
 
@@ -134,16 +135,16 @@ private:
 	{
 		const sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
-		chipPinkSprite.setPosition(64 + yDir, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + xDir);
 
 		chipGreenSprite.setOrigin(size.x / 2, size.y / 2);
-		chipGreenSprite.setPosition(64 + yDir, 50 + x_direction);
+		chipGreenSprite.setPosition(64 + yDir, 50 + xDir);
 	}
 
 	void SetChipInBoard()
 	{
-		chipPinkSprite.setPosition(64 + yDir, 50 + x_direction);
-		chipGreenSprite.setPosition(64 + yDir, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + xDir);
+		chipGreenSprite.setPosition(64 + yDir, 50 + xDir);
 
 		isActive = false;
 	}
