@@ -1,53 +1,44 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <iostream>
+#include "Entity.h"
 
 using namespace std;
-using namespace sf;
 
-class Entity
+
+class Board : public Entity
 {
 public:
-	virtual void update() {};
-
-	virtual void draw(sf::RenderWindow& window, sf::Sprite sprite)
+	Board()
 	{
-		window.draw(sprite);
-	}
+		if (!boardTexture.loadFromFile("assets/boardGap.png"))
+		{
+			cout << "Error loading board sprite" << "\n";
+			return;
+		}
 
-	virtual ~Entity() {};
-};
-
-class board : public Entity
-{
-public:
-	board()
-	{
-		boardTexture.loadFromFile("assets/boardGap.png");
-		boardSprite.setTexture(boardTexture);		
+		boardSprite.setTexture(boardTexture);	
 	}
 	
 	void DrawBoard(sf::RenderWindow& window)
 	{
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; ++i)
 		{
-			for (int j = 0; j < 5; j++)
+			for (int j = 0; j < 5; ++j)
 			{
-				sf::Texture boardTexture2;
-
-				sf::Vector2u size3 = boardTexture.getSize();
-				boardSprite.setOrigin(size3.x / 2, size3.y / 2);
+				sf::Vector2u size = boardTexture.getSize();
+				boardSprite.setOrigin(size.x / 2, size.y / 2);
 
 				//50, 50 is top left corner
 				boardSprite.setPosition(64 + (i * 74), 124 + (j * 74));
-				draw(window);
+				Draw(window);
 			}
 		}
 	}
 
-	void draw(sf::RenderWindow& window)
+	void Draw(sf::RenderWindow& window)
 	{
-		Entity::draw(window, boardSprite);
+		Entity::Draw(window, boardSprite);
 	}
 
 private:
@@ -55,89 +46,71 @@ private:
 	sf::Sprite boardSprite;
 };
 
-class chip : public Entity
+class Chip : public Entity
 {
 public:
+	enum direction { Left, Right };
+	enum player { Player1, Player2 };
 	bool isActive;
 
-	chip()
+	Chip(int idx)
 	{
-		chipPinkTexture.loadFromFile("assets/chipPink.png");
-		chipGreenTexture.loadFromFile("assets/chipGreen.png");
+		if (!chipPinkTexture.loadFromFile("assets/chipPink.png") || !chipGreenTexture.loadFromFile("assets/chipGreen.png"))
+		{
+			cout << "TEXTURE ERROR" << "\n";
+		}
 
 		chipPinkSprite.setTexture(chipPinkTexture);
 		chipGreenSprite.setTexture(chipGreenTexture);
+
+		owningPlayer = idx % 2 == 0 ? Chip::Player1 : Chip::Player2;
 		
 		SetChipOrigin();
 	}
 
-	void draw(sf::RenderWindow& window, int idx)
+	void DrawChip(sf::RenderWindow& window, player Player)
 	{
-		chipIdx = idx;
-		//if odd
-		if (idx % 2)
-		{
-			Entity::draw(window, chipGreenSprite);
-		}
-		else
-		{
-			Entity::draw(window, chipPinkSprite);
-		}		
+		Entity::Draw(window, owningPlayer == Player1 ? chipPinkSprite : chipGreenSprite);
 	}
 
-	void update()
+	void Update()
 	{
 		if(isActive)
 		{
-			if (chipIdx % 2)
-			{
-				chipGreenSprite.setPosition(64 + y_direction, 50);
-			}
-			else
-			{
-				chipPinkSprite.setPosition(64 + y_direction, 50);
-			}
-			
+			sf::Sprite& spriteToMove = owningPlayer == Player1 ? chipPinkSprite : chipGreenSprite;
+			spriteToMove.setPosition(64 + yDir, 50);			
 		}		
 	}
 
-	void ChipMove(int dir, int& row)
+	void ChipMove(direction direction, int& row)
 	{
-		if (dir == -1)
-		{			
+		if (direction == Left)
+		{
 			if (!(row < 1))
 			{
 				row -= 1;
-				y_direction -= 74;
+				yDir -= 74;
 			}
-			cout << "row: " << row << "\n";
 		}
 
-		else if (dir == 1)
+		if (direction == Right)
 		{
-			
 			if (!(row > 6))
 			{
 				row += 1;
-				y_direction += 74;
+				yDir += 74;
 			}
-			cout << "row: " << row << "\n";
-		}
-		else
-		{
-			cout << "OUT OF BOUNDS" << "\n";
 		}
 	}
 
-	int ChipSubmit(int &rowHeight)
+	int ChipSubmit(int rowHeight)
 	{
-		for (int i = 0; i <= rowHeight; i++)
+		for (int i = 0; i <= rowHeight; ++i)
 		{
-			x_direction += 74;
+			xDir += 74;
 		}
 
 		rowHeight -= 1;
-		cout << "rowHeight: " << rowHeight << "\n";
 		SetChipInBoard();
 		return rowHeight;
 	}
@@ -149,44 +122,49 @@ private:
 	sf::Texture chipGreenTexture;
 	sf::Sprite chipGreenSprite;
 
-	int y_direction = 0;
-	int x_direction = 0;
+	int yDir = 0;
+	int xDir = 0;
 
-	int chipIdx;
+	player owningPlayer;
 
 	void SetChipOrigin()
 	{
-		sf::Vector2u size = chipPinkTexture.getSize();
+		const sf::Vector2u size = chipPinkTexture.getSize();
 		chipPinkSprite.setOrigin(size.x / 2, size.y / 2);
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + xDir);
 
 		chipGreenSprite.setOrigin(size.x / 2, size.y / 2);
-		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipGreenSprite.setPosition(64 + yDir, 50 + xDir);
 	}
 
 	void SetChipInBoard()
 	{
-		chipPinkSprite.setPosition(64 + y_direction, 50 + x_direction);
-		chipGreenSprite.setPosition(64 + y_direction, 50 + x_direction);
+		chipPinkSprite.setPosition(64 + yDir, 50 + xDir);
+		chipGreenSprite.setPosition(64 + yDir, 50 + xDir);
 
 		isActive = false;
 	}
 };
+
+//Chip& GetActiveChip(vector<Chip*> chips)
+//{
+//	return *chips.back();
+//}
 
 void main(int argc, char** argv[])
 {  
 	// The render window
 	sf::RenderWindow window(sf::VideoMode(640, 480), "First Window");
 
-	Clock _timer;
+	sf::Clock _timer;
 
-	board _board;
+	Board _board;
 
 	//the chips
-	vector<chip*> _chips;
-	_chips.push_back(new chip);
+	vector<Chip*> _chips;
+	_chips.push_back(new Chip(_chips.size()));
 
-	chip *_activeChip = _chips.back();
+	Chip *_activeChip = _chips.back();
 
 	int rowHeights[8] = { 4, 4, 4, 4, 4, 4, 4, 4 };
 	int row = 0;
@@ -224,7 +202,7 @@ void main(int argc, char** argv[])
 					if (rowHeights[row] != -1)
 					{
 						rowHeights[row] = _activeChip->ChipSubmit(rowHeights[row]);
-						_chips.push_back(new chip);
+						_chips.push_back(new Chip(_chips.size()));
 						_activeChip = _chips.back();
 						row = 0;
 					}
@@ -232,18 +210,18 @@ void main(int argc, char** argv[])
 
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					_activeChip->ChipMove(-1, row);
+					_activeChip->ChipMove(Chip::direction::Left, row);
 				}
 
 				if (event.key.code == sf::Keyboard::Right)
 				{
-					_activeChip->ChipMove(1, row);
+					_activeChip->ChipMove(Chip::direction::Right, row);
 				}
 
 			}
 		}
 
-		_activeChip->update();
+		_activeChip->Update();
 
 		window.clear(sf::Color(236,240,241,255));
 
@@ -253,12 +231,19 @@ void main(int argc, char** argv[])
 		window.draw(text);
 
 		//draw chip
-		for (int i = 0; i < _chips.size(); i++)
-		{
-			_chips[i]->draw(window, i);
+		for (int i = 0; i < _chips.size(); ++i)
+		{			
+			Chip::player player = i % 2 == 0 ? Chip::Player1 : Chip::Player2;
+
+			_chips[i]->DrawChip(window, player);
 		}	
 
 		//Draw here
 		window.display();
+	}
+
+	for (int i = 0; i < _chips.size(); ++i)
+	{
+		delete(_chips[i]);
 	}
 }
