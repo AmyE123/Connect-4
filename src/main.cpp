@@ -51,6 +51,7 @@ class Chip : public Entity
 {
 public:
 	enum direction { Left, Right };
+	enum player { Player1, Player2 };
 	bool isActive;
 
 	Chip()
@@ -66,17 +67,18 @@ public:
 		SetChipOrigin();
 	}
 
-	void Draw(sf::RenderWindow& window, int idx)
+	void Draw(sf::RenderWindow& window, player Player)
 	{
-		Entity::Draw(window, idx % 2 == 0 ? chipPinkSprite : chipGreenSprite);
-		chipIdx = idx;
+		Entity::Draw(window, Player == Player1 ? chipPinkSprite : chipGreenSprite);
+
+		currentPlayer = Player;
 	}
 
 	void Update()
 	{
 		if(isActive)
 		{
-			sf::Sprite& spriteToMove = chipIdx % 2 == 0 ? chipPinkSprite : chipGreenSprite;
+			sf::Sprite& spriteToMove = currentPlayer == Player1 ? chipPinkSprite : chipGreenSprite;
 			spriteToMove.setPosition(64 + yDir, 50);			
 		}		
 	}
@@ -90,7 +92,6 @@ public:
 				row -= 1;
 				yDir -= 74;
 			}
-			cout << "row: " << row << "\n";
 		}
 
 		if (direction == Right)
@@ -100,11 +101,10 @@ public:
 				row += 1;
 				yDir += 74;
 			}
-			cout << "row: " << row << "\n";
 		}
 	}
 
-	int ChipSubmit(int &rowHeight)
+	int ChipSubmit(int rowHeight)
 	{
 		for (int i = 0; i <= rowHeight; i++)
 		{
@@ -112,7 +112,6 @@ public:
 		}
 
 		rowHeight -= 1;
-		cout << "rowHeight: " << rowHeight << "\n";
 		SetChipInBoard();
 		return rowHeight;
 	}
@@ -127,7 +126,7 @@ private:
 	int yDir = 0;
 	int xDir = 0;
 
-	int chipIdx;
+	player currentPlayer;
 
 	void SetChipOrigin()
 	{
@@ -231,8 +230,10 @@ void main(int argc, char** argv[])
 
 		//draw chip
 		for (int i = 0; i < _chips.size(); i++)
-		{
-			_chips[i]->Draw(window, i);
+		{			
+			Chip::player player = i % 2 == 0 ? Chip::Player1 : Chip::Player2;
+
+			_chips[i]->Draw(window, player);
 		}	
 
 		//Draw here
