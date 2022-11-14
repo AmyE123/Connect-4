@@ -4,7 +4,6 @@
 #include "Entity.h"
 
 using namespace std;
-using namespace sf;
 
 
 class Board : public Entity
@@ -157,7 +156,7 @@ void main(int argc, char** argv[])
 	// The render window
 	sf::RenderWindow window(sf::VideoMode(640, 480), "First Window");
 
-	Clock _timer;
+	sf::Clock _timer;
 
 	Board _board;
 
