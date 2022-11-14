@@ -23,9 +23,9 @@ public:
 	
 	void DrawBoard(sf::RenderWindow& window)
 	{
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; ++i)
 		{
-			for (int j = 0; j < 5; j++)
+			for (int j = 0; j < 5; ++j)
 			{
 				sf::Vector2u size = boardTexture.getSize();
 				boardSprite.setOrigin(size.x / 2, size.y / 2);
@@ -54,7 +54,7 @@ public:
 	enum player { Player1, Player2 };
 	bool isActive;
 
-	Chip()
+	Chip(int idx)
 	{
 		if (!chipPinkTexture.loadFromFile("assets/chipPink.png") || !chipGreenTexture.loadFromFile("assets/chipGreen.png"))
 		{
@@ -63,22 +63,22 @@ public:
 
 		chipPinkSprite.setTexture(chipPinkTexture);
 		chipGreenSprite.setTexture(chipGreenTexture);
+
+		owningPlayer = idx % 2 == 0 ? Chip::Player1 : Chip::Player2;
 		
 		SetChipOrigin();
 	}
 
-	void Draw(sf::RenderWindow& window, player Player)
+	void DrawChip(sf::RenderWindow& window, player Player)
 	{
-		Entity::Draw(window, Player == Player1 ? chipPinkSprite : chipGreenSprite);
-
-		currentPlayer = Player;
+		Entity::Draw(window, owningPlayer == Player1 ? chipPinkSprite : chipGreenSprite);
 	}
 
 	void Update()
 	{
 		if(isActive)
 		{
-			sf::Sprite& spriteToMove = currentPlayer == Player1 ? chipPinkSprite : chipGreenSprite;
+			sf::Sprite& spriteToMove = owningPlayer == Player1 ? chipPinkSprite : chipGreenSprite;
 			spriteToMove.setPosition(64 + yDir, 50);			
 		}		
 	}
@@ -106,7 +106,7 @@ public:
 
 	int ChipSubmit(int rowHeight)
 	{
-		for (int i = 0; i <= rowHeight; i++)
+		for (int i = 0; i <= rowHeight; ++i)
 		{
 			xDir += 74;
 		}
@@ -126,7 +126,7 @@ private:
 	int yDir = 0;
 	int xDir = 0;
 
-	player currentPlayer;
+	player owningPlayer;
 
 	void SetChipOrigin()
 	{
@@ -147,6 +147,11 @@ private:
 	}
 };
 
+//Chip& GetActiveChip(vector<Chip*> chips)
+//{
+//	return *chips.back();
+//}
+
 void main(int argc, char** argv[])
 {  
 	// The render window
@@ -158,7 +163,7 @@ void main(int argc, char** argv[])
 
 	//the chips
 	vector<Chip*> _chips;
-	_chips.push_back(new Chip);
+	_chips.push_back(new Chip(_chips.size()));
 
 	Chip *_activeChip = _chips.back();
 
@@ -166,8 +171,6 @@ void main(int argc, char** argv[])
 	int row = 0;
 
 	sf::Font font;
-
-
 
 	if (!font.loadFromFile("assets/LouisGeorgeCafe.ttf"))
 	{
@@ -200,7 +203,7 @@ void main(int argc, char** argv[])
 					if (rowHeights[row] != -1)
 					{
 						rowHeights[row] = _activeChip->ChipSubmit(rowHeights[row]);
-						_chips.push_back(new Chip);
+						_chips.push_back(new Chip(_chips.size()));
 						_activeChip = _chips.back();
 						row = 0;
 					}
@@ -229,14 +232,19 @@ void main(int argc, char** argv[])
 		window.draw(text);
 
 		//draw chip
-		for (int i = 0; i < _chips.size(); i++)
+		for (int i = 0; i < _chips.size(); ++i)
 		{			
 			Chip::player player = i % 2 == 0 ? Chip::Player1 : Chip::Player2;
 
-			_chips[i]->Draw(window, player);
+			_chips[i]->DrawChip(window, player);
 		}	
 
 		//Draw here
 		window.display();
+	}
+
+	for (int i = 0; i < _chips.size(); ++i)
+	{
+		delete(_chips[i]);
 	}
 }
