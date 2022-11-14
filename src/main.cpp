@@ -154,7 +154,7 @@ private:
 void main(int argc, char** argv[])
 {  
 	// The render window
-	sf::RenderWindow window(sf::VideoMode(640, 480), "First Window");
+	sf::RenderWindow window(sf::VideoMode(640, 480), "Connect 4");
 
 	sf::Clock _timer;
 
