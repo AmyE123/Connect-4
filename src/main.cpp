@@ -50,12 +50,15 @@ private:
 class Chip : public Entity
 {
 public:
+	enum direction { Left, Right };
 	bool isActive;
 
 	Chip()
 	{
-		chipPinkTexture.loadFromFile("assets/chipPink.png");
-		chipGreenTexture.loadFromFile("assets/chipGreen.png");
+		if (!chipPinkTexture.loadFromFile("assets/chipPink.png") || !chipGreenTexture.loadFromFile("assets/chipGreen.png"))
+		{
+			cout << "TEXTURE ERROR" << "\n";
+		}
 
 		chipPinkSprite.setTexture(chipPinkTexture);
 		chipGreenSprite.setTexture(chipGreenTexture);
@@ -78,10 +81,10 @@ public:
 		}		
 	}
 
-	void ChipMove(int dir, int& row)
+	void ChipMove(direction direction, int& row)
 	{
-		if (dir == -1)
-		{			
+		if (direction == Left)
+		{
 			if (!(row < 1))
 			{
 				row -= 1;
@@ -90,19 +93,14 @@ public:
 			cout << "row: " << row << "\n";
 		}
 
-		else if (dir == 1)
+		if (direction == Right)
 		{
-			
 			if (!(row > 6))
 			{
 				row += 1;
 				yDir += 74;
 			}
 			cout << "row: " << row << "\n";
-		}
-		else
-		{
-			cout << "OUT OF BOUNDS" << "\n";
 		}
 	}
 
@@ -170,6 +168,8 @@ void main(int argc, char** argv[])
 
 	sf::Font font;
 
+
+
 	if (!font.loadFromFile("assets/LouisGeorgeCafe.ttf"))
 	{
 		cout << "FONT ERROR" << "\n";
@@ -209,12 +209,12 @@ void main(int argc, char** argv[])
 
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					_activeChip->ChipMove(-1, row);
+					_activeChip->ChipMove(Chip::direction::Left, row);
 				}
 
 				if (event.key.code == sf::Keyboard::Right)
 				{
-					_activeChip->ChipMove(1, row);
+					_activeChip->ChipMove(Chip::direction::Right, row);
 				}
 
 			}
